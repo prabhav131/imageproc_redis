@@ -19,9 +19,9 @@
                 <th>Metadata</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="task-list">
             {% for task in tasks %}
-            <tr>
+            <tr id="task-{{ task['task_id'] }}">
                 <td>{{ task['task_id'] }}</td>
                 <td>{{ task['image_url'] }}</td>
                 <td>{{ task['status'] }}</td>
@@ -30,5 +30,26 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <script>
+        const eventSource = new EventSource('/api/task-status');
+        
+        eventSource.onmessage = function(event) {
+            console.log("Received update:", event.data);
+            const taskData = JSON.parse(event.data); // Parse the JSON message
+
+            const taskId = taskData.task_id;
+            const taskStatus = taskData.status;
+            const taskMetadata = JSON.stringify(taskData.metadata); // Convert metadata to string for display
+
+            // Find the row corresponding to the task ID
+            const taskRow = document.getElementById(`task-${taskId}`);
+            if (taskRow) {
+                // Update the status and metadata columns
+                taskRow.cells[2].textContent = taskStatus;
+                taskRow.cells[3].textContent = taskMetadata;
+            }
+        };
+    </script>
 </body>
 </html>
