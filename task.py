@@ -4,9 +4,12 @@ from pymongo import MongoClient
 import utils
 
 # MongoDB setup
-client = MongoClient("mongodb+srv://guptaprabhav131:4ytWTSdShcIy4OVJ@cluster0.rr2p5.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
-db = client["image_task_db"]
-tasks_collection = db["tasks"]
+try:
+    client = MongoClient("mongodb+srv://guptaprabhav131:4ytWTSdShcIy4OVJ@cluster0.rr2p5.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+    db = client["image_task_db"]
+    tasks_collection = db["tasks"]
+except Exception as e:
+    print("error connecting to mongoDB")    
 
 def process_image_task(task_id):
     try:
@@ -32,14 +35,20 @@ def process_image_task(task_id):
         }
         tasks_collection.update_one({"task_id": task_id}, {"$set": {"status": "Processing","timestamp": datetime.now()}})
         
+        print(f"Updated status of task {task_id} in mongoDB")
+
         if not utils.is_image_url_valid(image_url):
             print("URL is invalid or unreachable, can't be processed!")    
             raise Exception("not a valid URL")
+
+        print(f"{image_url} is a valid url, wait 1 min for processing...")
 
         # only process a valid URL
         time.sleep(60)  # Simulate processing time
         
         # TBD: write logic to raise exception if actual AI processing response is a failure
+
+        print(f"processing completed for task {task_id}")
 
         # Simulate metadata extraction from image
         metadata = {
@@ -69,7 +78,7 @@ def process_image_task(task_id):
             "timestamp": datetime.now()
         }
         tasks_collection.update_one({"task_id": task_id}, {"$set": {"status": "Failed","timestamp": datetime.now()}})
-        print(f"Failure! Error processing task {task_id}: {e}")
+        print(f"Failure status  updated in mongoDB! Error processing task {task_id}: {e}")
 
 
 if __name__ == "__main__":
