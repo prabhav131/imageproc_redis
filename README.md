@@ -2,7 +2,7 @@
 image processor to take in image urls and to process them using ai to show results in frontend
 
 
-1. create virtual env and activate it.
+1. Go inside the project folder and create virtual env and activate it.
 2. pip install -r requirements.txt
 3. in one terminal, run python main.py to fire up the frontend.
 4. in another terminal run the worker docker image to make it wait to listen to the queue
