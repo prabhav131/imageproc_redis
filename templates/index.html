@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Image Task</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Image Processor</h1>
+    <form action="/api/submit-task" method="post">
+        <input type="url" name="imageUrl" placeholder="Enter Image URL" required>
+        <button type="submit">Submit</button>
+    </form>
+    <table>
+        <thead>
+            <tr>
+                <th>Task ID</th>
+                <th>Image URL</th>
+                <th>Status</th>
+                <th>Metadata</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+            <tr>
+                <td>{{ task['task_id'] }}</td>
+                <td>{{ task['image_url'] }}</td>
+                <td>{{ task['status'] }}</td>
+                <td>{{ task['metadata'] | safe }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
