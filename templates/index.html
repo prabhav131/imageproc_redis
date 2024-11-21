@@ -3,12 +3,26 @@
 <head>
     <title>Image Task</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .message {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 14px;
+        }
+        .message.success {
+            color: green;
+        }
+        .message.error {
+            color: red;
+        }
+    </style>
 </head>
 <body>
     <h1>Image Processor</h1>
-    <form action="/api/submit-task" method="post">
+    <form id="imageForm" action="/api/submit-task" method="post">
         <input type="url" name="imageUrl" placeholder="Enter Image URL" required>
         <button type="submit">Submit</button>
+        <span id="message" class="message"></span>
     </form>
     <table>
         <thead>
@@ -32,22 +46,72 @@
     </table>
 
     <script>
+        // Handle form submission dynamically
+        const form = document.getElementById('imageForm');
+        const messageElement = document.getElementById('message'); // For displaying messages
+
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent the default form submission behavior
+
+            const formData = new FormData(form);
+            const url = form.action;
+
+            // Reset the message display
+            messageElement.textContent = '';
+            messageElement.className = 'message';
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Unknown error');
+                }
+
+                console.log("Task submitted successfully:", result);
+
+                // Dynamically add the new task to the table
+                const taskList = document.getElementById('task-list');
+                const newRow = document.createElement('tr');
+                newRow.id = `task-${result.taskId}`;
+
+                newRow.innerHTML = `
+                    <td>${result.taskId}</td>
+                    <td>${formData.get('imageUrl')}</td>
+                    <td>Pending</td>
+                    <td></td>
+                `;
+
+                taskList.appendChild(newRow); // Append the new row to the table
+
+                // Display success message
+                messageElement.textContent = 'Task submitted successfully!';
+                messageElement.classList.add('success');
+            } catch (error) {
+                console.error("Error submitting task:", error);
+
+                // Display error message
+                messageElement.textContent = `Error: ${error.message}`;
+                messageElement.classList.add('error');
+            }
+
+            form.reset(); // Reset the form fields
+        });
+
+        // SSE for real-time task status updates
         const eventSource = new EventSource('/api/task-status');
-        
         eventSource.onmessage = function(event) {
             console.log("Received update:", event.data);
-            const taskData = JSON.parse(event.data); // Parse the JSON message
+            const taskData = JSON.parse(event.data);
 
-            const taskId = taskData.task_id;
-            const taskStatus = taskData.status;
-            const taskMetadata = JSON.stringify(taskData.metadata); // Convert metadata to string for display
-
-            // Find the row corresponding to the task ID
-            const taskRow = document.getElementById(`task-${taskId}`);
+            const taskRow = document.getElementById(`task-${taskData.task_id}`);
             if (taskRow) {
-                // Update the status and metadata columns
-                taskRow.cells[2].textContent = taskStatus;
-                taskRow.cells[3].textContent = taskMetadata;
+                taskRow.cells[2].textContent = taskData.status; // Update status
+                taskRow.cells[3].textContent = JSON.stringify(taskData.metadata); // Update metadata
             }
         };
     </script>
