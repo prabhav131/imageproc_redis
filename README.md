@@ -1,6 +1,6 @@
 # imageproc_redis
-image processor to take in image urls and to process them using ai to show results in frontend
-
+AI-powered image processing system that ingests image URLs, processes them using machine learning models, and delivers results to the frontend. Implemented Redis for distributed task queue management, enabling parallel processing with multiple workers. Designed real-time status updates in the frontend using SSE, ensuring a seamless user experience.
+DB used: MongoDB
 
 1. Go inside the project folder and create virtual env and activate it.
 2. pip install -r requirements.txt
